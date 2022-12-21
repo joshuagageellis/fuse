@@ -4,10 +4,10 @@
 			"int": { "min": 999, "max": 1000000 }
 		},
 		"title": {
-			"loremSentences": { "minLength": 40, "maxLength": 200 }
+			"loremSentences": { "minLength": 20, "maxLength": 150 }
 		},
 		"description": {
-			"loremParagraphs": { "minLength": 1, "maxLength": 5 }
+			"loremParagraphs": { "minLength": 100, "maxLength": 500 }
 		},
 		"photo": {
 			"regexp": "https://picsum\\.photos/seed/[0-9]{5}/1920/1080"
