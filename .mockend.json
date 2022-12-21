@@ -1,0 +1,66 @@
+{
+	"Event": {
+		"event_id": {
+			"int": { "min": 999, "max": 1000000 }
+		},
+		"title": {
+			"loremWords": { "minLength": 5, "maxLength": 20 }
+		},
+		"description": {
+			"loremParagraphs": { "minLength": 1, "maxLength": 5 }
+		},
+		"photo": {
+			"regexp": "https://picsum\\.photos/seed/[0-9]{5}/1920/1080"
+		},
+		"type": {
+			"hasMany": "TaxonomyType"
+		},
+		"published": {
+			"dateTime": {
+				"min": "2020-01-01T00:00:00Z",
+				"max": "2022-12-31T23:59:59Z"
+			}
+		},
+		"start": {
+			"dateTime": {
+				"min": "2020-01-01T00:00:00Z",
+				"max": "2020-12-31T23:59:59Z"
+			}
+		},
+		"end": {
+			"dateTime": {
+				"min": "2021-01-01T00:00:00Z",
+				"max": "2021-12-31T23:59:59Z"
+			}
+		}
+	},
+	"TaxonomyType": {
+		"name": {
+			"string": [
+				"Concert",
+				"Conference",
+				"Convention",
+				"Exhibition",
+				"Festival",
+				"Meeting",
+				"Party"
+			]
+		}
+	},
+	"TaxonomyDiscipline": {
+		"name": {
+			"string": [
+				"Art",
+				"Business",
+				"Education",
+				"Entertainment",
+				"Food",
+				"Health",
+				"Music",
+				"Science",
+				"Sports",
+				"Technology"
+			]
+		}
+	}
+}
