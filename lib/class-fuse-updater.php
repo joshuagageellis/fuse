@@ -95,24 +95,16 @@ class Fuse_Updater {
 			}
 
 			/**
-			 * DEBUGGING.
-			 * TESTING.
-			 */
-			$args['post_title'] = $args['post_title'] . ' ' . $args['ID'];
-			/* end test */
-
-			/**
-			 * Get post by ID, if none set to new status and remove ID.
+			 * Get post by meta identifier, if none set remove ID.
 			 */
 			$args['meta_input'][ $this->meta_identifier_key ] = $args['ID'];
-
-			$existing_post = get_posts(
+			$existing_post                                    = get_posts(
 				array(
 					'post_type'      => $post_type,
 					'posts_per_page' => 1,
 					'meta_key'       => $this->meta_identifier_key,
 					'meta_value'     => $args['ID'],
-					'fields'          => 'ids', // returns only post ids.
+					'fields'         => 'ids', // Returns only post ids.
 				)
 			);
 

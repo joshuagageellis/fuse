@@ -52,11 +52,6 @@ class Fuse_API_Request {
 			if ( $cache ) {
 				set_transient( $this->cache_key, $cache, $this->cache_time );
 			}
-		} else {
-			/**
-			 * ! WARNING ! This is for debugging only.
-			 */
-			// var_dump( 'cache hit' );
 		}
 		return $cache;
 	}
