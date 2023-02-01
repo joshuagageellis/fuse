@@ -185,10 +185,10 @@ class Fuse_Updater {
 		}
 
 		// Delete all posts that are not in API.
-		foreach ( $posts as $post ) {
-			$meta = (int) get_post_meta( $post->ID, $this->meta_identifier_key, true );
+		foreach ( $posts as $post_id ) {
+			$meta = (int) get_post_meta( $post_id, $this->meta_identifier_key, true );
 			if ( ! in_array( $meta, $api_ids, true ) ) {
-				wp_delete_post( $post->ID, true );
+				wp_delete_post( $post_id, false );
 			}
 		}
 	}
