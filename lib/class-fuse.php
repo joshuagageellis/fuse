@@ -53,13 +53,6 @@ class Fuse {
 	private $child_cron;
 
 	/**
-	 * Batch size.
-	 *
-	 * @var int
-	 */
-	 private $batch_size = 10;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct( Fuse_Config $config ) {
@@ -79,6 +72,7 @@ class Fuse {
 		 */
 		add_action( 'wp_loaded', array( $this, 'register_parent_schedule' ) );
 		add_action( 'wp_loaded', array( $this, 'register_child_schedule' ) );
+		add_action( $this->cron_key . 'cleanup', array( $this, 'cleanup_action' ) );
 	}
 
 	/**
@@ -132,6 +126,11 @@ class Fuse {
 		 */
 		$count = count( $data );
 		$this->set_schedule_tracker( time(), $count, 0 );
+
+		/**
+		 * Run clean up on delay
+		 */
+		$this->schedule_cleanup();
 	}
 
 	/**
@@ -161,12 +160,12 @@ class Fuse {
 		}
 
 		// Update.
-		$batch   = array_slice( $data, $in_progress['pointer'], $this->batch_size );
+		$batch   = array_slice( $data, $in_progress['pointer'], $this->config->batch_size );
 		$updater = $this->updater;
 		$updater->update( $batch );
 
 		// Update pointer.
-		$this->update_schedule_tracker( $in_progress['pointer'] + $this->batch_size );
+		$this->update_schedule_tracker( $in_progress['pointer'] + $this->config->batch_size );
 	}
 
 	/**
@@ -175,7 +174,7 @@ class Fuse {
 	public function register_parent_schedule() {
 		Fuse_Cron::init(
 			$this->cron_key . 'parent',
-			86400, // 24 hours
+			$this->config->parent_interval,
 			array( $this, 'parent_process' )
 		);
 	}
@@ -187,9 +186,47 @@ class Fuse {
 	public function register_child_schedule() {
 		$this->child_cron = Fuse_Cron::init(
 			$this->cron_key . 'child',
-			300, // 5 minutes.
+			$this->config->child_interval,
 			array( $this, 'child_process' )
 		);
+	}
+
+	/**
+	 * Schedule cleanup.
+	 */
+	public function schedule_cleanup() {
+		if ( ! wp_next_scheduled( $this->cron_key . 'cleanup' ) ) {
+			wp_schedule_event( time(), 'one_minute', $this->cron_key . 'cleanup' );
+		}
+	}
+
+	/**
+	 * Schedule cleanup.
+	 */
+	public function unschedule_cleanup() {
+		$timestamp = wp_next_scheduled( $this->cron_key . 'cleanup' );
+		wp_unschedule_event( $timestamp, $this->cron_key . 'cleanup' );
+	}
+
+	/**
+	 * Cleanup action.
+	 * Runs immeidately after parent schedule.
+	 * Performs a full query against the DB to check if posts need to be deleted.
+	 */
+	public function cleanup_action() {
+		$api_request = $this->api_request;
+		$data        = $api_request->get_api_data();
+
+		if ( ! $data ) {
+			throw new Exception( 'API failure', 500 );
+		}
+
+		// Update.
+		$updater = $this->updater;
+		$updater->cleanup( $data );
+
+		// Unschedule self.
+		$this->unschedule_cleanup();
 	}
 
 	/**

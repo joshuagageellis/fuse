@@ -6,6 +6,11 @@
  * @package fuse
  */
 
+/**
+ * Config object.
+ * Define the post type, API endpoint, and field mapping.
+ * Optionally define batch size, parent interval, and child interval.
+ */
 class Fuse_Config {
 	/**
 	 * Post type.
@@ -51,16 +56,45 @@ class Fuse_Config {
 	public $tax_input_map = array();
 
 	/**
+	 * Batch size.
+	 *
+	 * @var int
+	 */
+	public $batch_size;
+
+	/**
+	 * Parent interval.
+	 * When the parent cron job should run.
+	 *
+	 * @var int
+	 */
+	public $parent_interval;
+
+	/**
+	 * Child interval.
+	 * When the child cron job should run.
+	 *
+	 * @var int
+	 */
+	public $child_interval;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct(
 		string $post_type,
 		string $api_endpoint,
-		string $api
+		string $api,
+		int $batch_size = 10,
+		int $parent_interval = 86400,
+		int $child_interval = 600
 	) {
-		$this->post_type    = $post_type;
-		$this->api_endpoint = $api_endpoint;
-		$this->api          = $api;
+		$this->post_type       = $post_type;
+		$this->api_endpoint    = $api_endpoint;
+		$this->api             = $api;
+		$this->batch_size      = $batch_size;
+		$this->parent_interval = $parent_interval;
+		$this->child_interval  = $child_interval;
 	}
 
 	/**

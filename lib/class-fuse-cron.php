@@ -95,3 +95,17 @@ class Fuse_Cron {
 		return [ 'hourly', 'twicedaily', 'daily' ];
 	}
 }
+
+add_filter( 'cron_schedules', 'fuse_additional_schedules' );
+
+/**
+ * Extra schedules.
+ */
+function fuse_additional_schedules( $schedules ) {
+	$schedules['one_minute'] = array(
+		'interval' => 60,
+		'display'  => esc_html__( 'Every Minute' ),
+	);
+
+	return $schedules;
+}

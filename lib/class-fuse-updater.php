@@ -149,4 +149,47 @@ class Fuse_Updater {
 
 		return $output;
 	}
+
+	/**
+	 * Clean up update.
+	 * Remove posts that are no longer in API.
+	 */
+	public function cleanup( array $data ) {
+		// Query all data in post type.
+		$posts = get_posts(
+			array(
+				'post_type'      => $this->config->post_type,
+				'posts_per_page' => -1,
+				'no_found_rows'  => true, // We don't need pagination.
+				'fields'         => 'ids', // Returns only post ids.
+				'meta_query'     => array(
+					array(
+						'key'     => $this->meta_identifier_key,
+						'compare' => 'EXISTS',
+					),
+				),
+			)
+		);
+
+		// Get all IDs from API.
+		try {
+			// Config defined ID from api, could be anything.
+			$id_key = $this->config->postarr_map['ID']['api_field_key'];
+		} catch ( Exception $e ) {
+			throw new Exception( 'No ID key found in postarr_map', 500 );
+		}
+
+		$api_ids = array();
+		foreach ( $data as $insertable_post ) {
+			$api_ids[] = (int) $insertable_post->{ $id_key };
+		}
+
+		// Delete all posts that are not in API.
+		foreach ( $posts as $post ) {
+			$meta = (int) get_post_meta( $post->ID, $this->meta_identifier_key, true );
+			if ( ! in_array( $meta, $api_ids, true ) ) {
+				wp_delete_post( $post->ID, true );
+			}
+		}
+	}
 }

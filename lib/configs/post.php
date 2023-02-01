@@ -10,6 +10,7 @@ $fuse_post_config = new Fuse_Config(
 	'post',
 	'events',
 	'https://mockend.com/joshuagageellis/fuse/',
+	25,
 );
 
 $fuse_post_config->define_field_map(

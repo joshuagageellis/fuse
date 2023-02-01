@@ -1,5 +1,6 @@
 {
 	"Event": {
+		"_": { "items": 50 },
 		"event_id": {
 			"int": { "min": 999, "max": 1000000 }
 		},
