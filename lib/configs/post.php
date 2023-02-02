@@ -40,7 +40,7 @@ $fuse_post_config->define_field_map(
 	array(
 		'meta_type'     => 'insert',
 		'data_type'     => 'string',
-		'api_field_key' => 'title',
+		'api_field_key' => 'description',
 		'manual'        => false,
 		'manual_value'  => '',
 	)
@@ -49,10 +49,28 @@ $fuse_post_config->define_field_map(
 $fuse_post_config->define_field_map(
 	'post_status',
 	array(
-		'meta_type'     => 'insert',
-		'data_type'     => 'bool',
-		'manual'        => true,
-		'manual_value'  => 'publish',
+		'meta_type'    => 'insert',
+		'data_type'    => 'bool',
+		'manual'       => true,
+		'manual_value' => 'publish',
+	)
+);
+
+$fuse_post_config->define_field_map(
+	'category',
+	array(
+		'meta_type'     => 'tax',
+		'data_type'     => 'string',
+		'api_field_key' => 'discipline',
+	)
+);
+
+$fuse_post_config->define_field_map(
+	'post_tag',
+	array(
+		'meta_type'     => 'tax',
+		'data_type'     => 'string',
+		'api_field_key' => 'type',
 	)
 );
 

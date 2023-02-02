@@ -5,6 +5,10 @@
  * @package fuse
  */
 
+/**
+ * Updater.
+ * Handles all post updates.
+ */
 class Fuse_Updater {
 	/**
 	 * Config.
@@ -16,11 +20,15 @@ class Fuse_Updater {
 	/**
 	 * Meta identifier key.
 	 * Used to identify posts to update.
+	 *
+	 * @var string
 	 */
 	private $meta_identifier_key = 'fuse_id';
 
 	/**
 	 * Constructor.
+	 *
+	 * @param Fuse_Config $config The config.
 	 */
 	public function __construct( Fuse_Config $config ) {
 		$this->config = $config;
@@ -47,6 +55,11 @@ class Fuse_Updater {
 
 	/**
 	 * Walk parsed stdClass response from API.
+	 *
+	 * @param string   $prop The property to walk.
+	 * @param stdClass $obj The object to walk.
+	 * @return mixed The value.
+	 * @throws Exception If the property doesn't exist.
 	 */
 	public static function walk_object( $prop, $obj ) {
 		$exploded = explode( '.', $prop );
@@ -76,6 +89,9 @@ class Fuse_Updater {
 
 	/**
 	 * Esentially insert post w/ parsed meta.
+	 *
+	 * @param array $data The data to insert.
+	 * @throws Exception If the post errors.
 	 */
 	public function update( $data ) {
 		$post_type = $this->config->post_type;
@@ -85,8 +101,7 @@ class Fuse_Updater {
 			$args = array_merge(
 				array( 'post_type' => $post_type ),
 				$this->get_meta_map( $this->config->postarr_map, $insertable_post ),
-				array( 'meta_input' => $this->get_meta_map( $this->config->meta_input_map, $insertable_post ) ),
-				array( 'tax_input' => $this->get_meta_map( $this->config->tax_input_map, $insertable_post ) ),
+				array( 'meta_input' => $this->get_meta_map( $this->config->meta_input_map, $insertable_post ) ), // @TODO: Implement meta map.
 			);
 
 			// Must have an ID.
@@ -108,8 +123,11 @@ class Fuse_Updater {
 				)
 			);
 
+			// If post exists, set ID and post_date.
+			// If we need to retain current data we should do so here.
 			if ( $existing_post ) {
-				$args['ID'] = $existing_post[0];
+				$args['ID']        = $existing_post[0];
+				$args['post_date'] = get_post_datetime( $args['ID'] )->format( 'Y-m-d H:i:s' );
 			} else {
 				unset( $args['ID'] );
 			}
@@ -118,11 +136,26 @@ class Fuse_Updater {
 			if ( is_wp_error( $post_id ) || 0 === $post_id ) {
 				throw new Exception( sprintf( 'Error on post %1$s', $post_id ), 500 );
 			}
+
+			/**
+			 * Taxonomy insert.
+			 *
+			 * Cron jobs do not pass the current_user can check when inserting via wp_insert_post.
+			 * Taxonomies need to be handled separately and after post insertion.
+			 */
+			$tax_args = $this->get_taxonomy_map( $this->config->tax_input_map, $insertable_post );
+			foreach ( $tax_args as $taxonomy => $terms ) {
+				wp_set_object_terms( $post_id, $terms, $taxonomy, false );
+			}
 		}
 	}
 
 	/**
 	 * Get field value.
+	 *
+	 * @param array    $field The field to get.
+	 * @param stdClass $post The post to get the field from.
+	 * @return mixed The value.
 	 */
 	public function get_field_value( array $field, stdClass $post ) {
 		// Handle manual, no check.
@@ -139,6 +172,10 @@ class Fuse_Updater {
 	/**
 	 * Get meta map.
 	 * How the API data maps to wp_insert_post.
+	 *
+	 * @param array    $map The map to parse.
+	 * @param stdClass $post The post to get the field from.
+	 * @return array The parsed map.
 	 */
 	public function get_meta_map( array $map, stdClass $post ) {
 		$output = array();
@@ -151,8 +188,52 @@ class Fuse_Updater {
 	}
 
 	/**
+	 * Get taxonomy map.
+	 * Handles registering and inserting taxonomy terms.
+	 *
+	 * @param array    $map The map to parse.
+	 * @param stdClass $post The post to get the field from.
+	 * @return array The parsed map.
+	 */
+	public function get_taxonomy_map( array $map, stdClass $post ) {
+		$output = array();
+
+		// Parse api field.
+		foreach ( $map as $meta_key => $field ) {
+			$output[ $meta_key ] = $this->get_field_value( $field, $post );
+		}
+
+		// Get term ids and register if necessary.
+		foreach ( $output as $taxonomy => $term ) {
+			$term_ids     = array();
+			$slugify_term = sanitize_title( $term ); // Normalize term.
+			$term_check   = term_exists( $slugify_term, $taxonomy );
+
+			// If term doesn't exist, create it.
+			if ( null === $term_check ) {
+				$tmp_term_id = wp_insert_term( $term, $taxonomy );
+				if ( is_wp_error( $tmp_term_id ) ) {
+					continue;
+				}
+				$term_ids[] = $tmp_term_id['term_id'];
+			} elseif ( is_array( $term_check ) ) {
+				$term_ids[] = $term_check['term_id'];
+			}
+			// Ensure intval for term ids.
+			$output[ $taxonomy ] = array_map( 'intval', $term_ids );
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Clean up update.
 	 * Remove posts that are no longer in API.
+	 * Expensive operation.
+	 *
+	 * @param array $data The data from the API.
+	 * @throws Exception If error.
+	 * @return void
 	 */
 	public function cleanup( array $data ) {
 		// Query all data in post type.

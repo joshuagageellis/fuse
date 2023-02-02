@@ -46,14 +46,9 @@ class Fuse {
 	private $cron_key = 'fuse_cron_';
 
 	/**
-	 * Child CRON.
-	 *
-	 * @var Fuse_Cron;
-	 */
-	private $child_cron;
-
-	/**
 	 * Constructor.
+	 *
+	 * @param Fuse_Config $config The config.
 	 */
 	public function __construct( Fuse_Config $config ) {
 		$this->config           = $config;
@@ -227,16 +222,6 @@ class Fuse {
 
 		// Unschedule self.
 		$this->unschedule_cleanup();
-	}
-
-	/**
-	 * Remove sub schedule.
-	 * On complete.
-	 */
-	public function remove_child_schedule() {
-		if ( $this->child_cron ) {
-			$this->child_cron->unschedule_event();
-		}
 	}
 
 	/**

@@ -80,6 +80,13 @@ class Fuse_Config {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $post_type       The post type.
+	 * @param string $api_endpoint    The API endpoint.
+	 * @param string $api             The API.
+	 * @param int    $batch_size      The batch size. Optional.
+	 * @param int    $parent_interval The parent interval. Optional.
+	 * @param int    $child_interval  The child interval. Optional.
 	 */
 	public function __construct(
 		string $post_type,
@@ -137,7 +144,7 @@ class Fuse_Config {
 			$this->postarr_map[ $meta_key ] = $config;
 		} elseif ( 'meta' === $meta_type ) {
 			$this->meta_input_map[ $meta_key ] = $config;
-		} elseif ( 'tax' === $meta_type ) {
+		} elseif ( 'tax' === $meta_type || 'taxonomy' === $meta_type ) {
 			$this->tax_input_map[ $meta_key ] = $config;
 		}
 	}
