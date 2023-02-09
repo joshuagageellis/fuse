@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name:     Fuse
- * Plugin URI:      PLUGIN SITE HERE
- * Description:     PLUGIN DESCRIPTION HERE
- * Author:          YOUR NAME HERE
- * Author URI:      YOUR SITE HERE
+ * Plugin URI:      https://wideeye.co/
+ * Description:     Sync an arbitrary API to a WordPress post type.
+ * Author:          Joshua Gage Ellis
+ * Author URI:      https://wideeye.co/
  * Text Domain:     fuse
  * Domain Path:     /languages
  * Version:         0.1.0
@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'FUSE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FUSE_URL', plugin_dir_url( __FILE__ ) );
+define( 'FUSE_DEACTIVATE_HOOK', __FILE__ );
 
 require FUSE_DIR . 'lib/class-fuse-config.php';
 require FUSE_DIR . 'lib/class-fuse.php';

@@ -46,6 +46,20 @@ class Fuse {
 	private $cron_key = 'fuse_cron_';
 
 	/**
+	 * Parent cron.
+	 *
+	 * @var Fuse_Cron
+	 */
+	private $parent_cron;
+
+	/**
+	 * Child cron.
+	 *
+	 * @var Fuse_Cron
+	 */
+	private $child_cron;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Fuse_Config $config The config.
@@ -68,6 +82,20 @@ class Fuse {
 		add_action( 'wp_loaded', array( $this, 'register_parent_schedule' ) );
 		add_action( 'wp_loaded', array( $this, 'register_child_schedule' ) );
 		add_action( $this->cron_key . 'cleanup', array( $this, 'cleanup_action' ) );
+
+		/**
+		 * Register deactivation hook.
+		 */
+		register_deactivation_hook( FUSE_DEACTIVATE_HOOK, array( $this, 'fuse_unschedule' ) );
+	}
+
+	/**
+	 * Deactivation hook.
+	 */
+	public function fuse_unschedule() {
+		$this->unschedule_cleanup();
+		$this->parent_cron->unschedule_event();
+		$this->child_cron->unschedule_event();
 	}
 
 	/**
@@ -167,7 +195,7 @@ class Fuse {
 	 * Register parent cron schedule.
 	 */
 	public function register_parent_schedule() {
-		Fuse_Cron::init(
+		$this->parent_cron = Fuse_Cron::init(
 			$this->cron_key . 'parent',
 			$this->config->parent_interval,
 			array( $this, 'parent_process' )
